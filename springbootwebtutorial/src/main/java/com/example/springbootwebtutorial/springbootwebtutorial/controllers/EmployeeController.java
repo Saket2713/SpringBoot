@@ -1,12 +1,16 @@
 package com.example.springbootwebtutorial.springbootwebtutorial.controllers;
 
 import com.example.springbootwebtutorial.springbootwebtutorial.dto.EmployeeDTO;
-import com.example.springbootwebtutorial.springbootwebtutorial.entities.EmployeeEntity;
-import com.example.springbootwebtutorial.springbootwebtutorial.repositories.EmployeeRepository;
+
+import com.example.springbootwebtutorial.springbootwebtutorial.exceptions.ResourceNotFoundException;
+import com.example.springbootwebtutorial.springbootwebtutorial.services.EmployeeService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping(path = "/employees")
@@ -16,29 +20,47 @@ public class EmployeeController {
 //    public String getMySuperSecretMessage(){
 //        return "Secret message: asdas3432wdadd@$%Dasfdad";
 //    }
-    private final EmployeeRepository employeeRepository;
+    private final EmployeeService employeeService;
 
-    public EmployeeController(EmployeeRepository employeeRepository) {
-        this.employeeRepository = employeeRepository;
+
+    public EmployeeController(EmployeeService employeeService) {
+        this.employeeService = employeeService;
     }
 
 
     @GetMapping("/{employeeId}")
-    public EmployeeEntity getEmployeeById(@PathVariable(name = "employeeId") Long id){
-        return employeeRepository.findById(id).orElse(null);
+    public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable(name = "employeeId") Long id){
+        Optional<EmployeeDTO> employeeDTO =  employeeService.getEmployeeById(id);
+        return employeeDTO
+                .map(employeeDTO1 -> ResponseEntity.ok(employeeDTO1))
+                .orElseThrow(() ->new ResourceNotFoundException("Could not find employee with id:"+id) );
     }
+
+
 
     @GetMapping
-    public List<EmployeeEntity> getAllEmployees(@RequestParam(required = false) Integer age){
-        return employeeRepository.findAll();
+    public List<EmployeeDTO> getAllEmployees(@RequestParam(required = false) Integer age){
+        return employeeService.getAllEmployees();
     }
     @PostMapping
-    public EmployeeEntity createNewEmployee(@RequestBody EmployeeEntity inputEmployee){
-        return employeeRepository.save(inputEmployee);
+    public EmployeeDTO createNewEmployee(@RequestBody @Valid EmployeeDTO inputEmployee){
+        return employeeService.createNewEmployee(inputEmployee);
     }
 
-    @PutMapping String updateEmployeeById(){
-        return "Hello from put";
+    @PutMapping(path = "/{employeesId}")
+    public EmployeeDTO updateEmployeeById(@RequestBody @Valid  EmployeeDTO employeeDTO ,@PathVariable Long employeeId){
+        return employeeService.updateEmployeeById(employeeId, employeeDTO);
+
+    }
+    @DeleteMapping(path = "/{employeeId}")
+    public boolean deleteEmployeeById(@PathVariable Long employeeId){
+        return employeeService.deleteEmployeeById(employeeId);
+
+    }
+    @PatchMapping(path = "/{employeeId}")
+    public EmployeeDTO updatePartialEmployeeById(@RequestBody Map<String, Object> updates, @PathVariable Long employeeId){
+        return employeeService.updatePartialEmployeeById(employeeId, updates);
+
     }
 
 }

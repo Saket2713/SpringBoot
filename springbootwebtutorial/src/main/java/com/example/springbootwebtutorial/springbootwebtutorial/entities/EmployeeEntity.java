@@ -1,9 +1,11 @@
 package com.example.springbootwebtutorial.springbootwebtutorial.entities;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jdk.jfr.Enabled;
 import lombok.*;
+
 
 import java.time.LocalDate;
 @Entity
@@ -22,5 +24,14 @@ public class EmployeeEntity {
     private Integer age;
     private String Email;
     private LocalDate DateOfJoining;
+
+    @JsonProperty("isActive")
     private Boolean isActive;
+
+    private String role;
+    private Double salary;
+
+    public void setId(Long employeeId) {
+
+    }
 }
